@@ -71,9 +71,18 @@ class PayermaxClient
 
         $respJson = json_decode($respBody, true);
 
+        /**
+         *  Guzzle 7 support
+         *  @see https://docs.guzzlephp.org/en/stable/psr7.html#accessing-headers
+         */
+        $responseSign = $response->getHeader('sign');
+        if (is_array($responseSign)){
+            $responseSign = $responseSign[0];
+        }
+
         //验签
         if(GatewayResult::success($respJson)
-            && RSAUtils::verify($respBody, $response->getHeader('sign'), self::$merchantConfig->payermaxPublicKey)) {
+            && RSAUtils::verify($respBody, $responseSign, self::$merchantConfig->payermaxPublicKey)) {
             return $respBody;
         }
 
